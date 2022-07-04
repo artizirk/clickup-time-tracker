@@ -19,6 +19,7 @@ export default {
                 url: `${baseUrl()}/time_entries?` + new URLSearchParams({
                     start_date: start.valueOf(),
                     end_date: end.valueOf(),
+                    include_location_names: true,
                 }),
 
                 headers: {

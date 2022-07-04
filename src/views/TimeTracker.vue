@@ -20,10 +20,10 @@
     @view-change="fetchEvents"
     @event-drop="updateTimeTrackingEntry"
     @event-duration-change="updateTimeTrackingEntry"
-    @keydown.meta.delete.exact="deleteSelectedTask()"
-    @keydown.meta.v.exact="duplicateSelectedTask()"
-    @keydown.meta.d.exact="duplicateSelectedTask()"
-    @keydown.meta.x.exact="refreshBackgroundImage()"
+    @keydown.ctrl.delete.exact="deleteSelectedTask()"
+    @keydown.ctrl.v.exact="duplicateSelectedTask()"
+    @keydown.ctrl.d.exact="duplicateSelectedTask()"
+    @keydown.ctrl.x.exact="refreshBackgroundImage()"
     active-view="week"
     today-button
     ref="calendar"
@@ -45,6 +45,10 @@
       </div>
     </template>
 
+    <!--template v-slot:weekday-heading="{ heading }">
+        <span type="false" aria-label="false">{{ heading.label }}</span>
+    </template-->
+
     <template v-slot:event="{ event }" >
 
         <div class="vuecal__event-title">
@@ -62,6 +66,17 @@
                 <template #header>
                     <span class="font-semibold text-gray-700" v-text="event.title"></span>
                 </template>
+
+                <p class="whitespace-pre-wrap">{{ event.taskLocation }}</p>
+
+                <hr class="my-2 -mx-3.5" />
+
+                <p class="whitespace-pre-wrap">
+                    {{ event.start.formatTime('HH:mm') }}
+                    <span class="mx-1">-</span>
+                    {{ event.end.formatTime('HH:mm') }}
+                </p>
+
 
                 <span v-text="event.description" class="whitespace-pre-wrap"></span>
 
@@ -82,13 +97,13 @@
 
         </div>
 
-        <!-- START | Time from/to -->
+	<p v-text="event.taskLocationShort" class="whitespace-pre-wrap" style="font-size: small"></p>
+
+	<p v-text="event.description" class="whitespace-pre-wrap" style="flex-grow: 2"></p>
+
         <div class="vuecal__event-time">
-            {{ event.start.formatTime('HH:mm') }}
-            <span class="mx-1">-</span>
-            {{ event.end.formatTime('HH:mm') }}
+            {{ String(Math.trunc(event.raw_duration / 1000 / 60 / 60 % 60)).padStart(2, '0') }}h{{ String(Math.trunc(event.raw_duration / 1000 / 60 % 60)).padStart(2, '0') }}m
         </div>
-        <!-- END | Time from/to -->
 
     </template>
 
@@ -190,6 +205,9 @@
 
             You sure bout that?
           </n-popconfirm>
+          <button @click="shell.openExternal(selectedTask.taskUrl)" class="flex items-center py-1 space-x-1 italic text-gray-500 hover:text-gray-700">
+              <img class="mt-1 w-12" src="@/assets/images/white-rounded-logo.svg" alt="Open task in ClickUp">
+          </button>
 
           <span>{{ selectedTask.title }}</span>
         </span>
@@ -198,6 +216,13 @@
       <n-space vertical>
         <!-- TODO: Show some task labels -->
         <!-- TODO: Show current task column -->
+
+        <p class="whitespace-pre-wrap">{{ selectedTask.taskLocation }}</p>
+        <p class="whitespace-pre-wrap">
+            {{ selectedTask.start.formatTime('HH:mm') }}
+            <span class="mx-1">-</span>
+            {{ selectedTask.end.formatTime('HH:mm') }}
+        </p>
 
         <p class="whitespace-pre-wrap">{{ selectedTask.description || "No description provided" }}</p>
 
@@ -316,6 +341,8 @@ export default {
     |--------------------------------------------------------------------------
     */
     async fetchEvents({ startDate, endDate }) {
+      this.startDate = startDate;
+      this.endDate = endDate;
       clickupService
         .getTimeTrackingRange(startDate, endDate)
         .then(entries => {

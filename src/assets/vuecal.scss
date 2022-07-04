@@ -82,10 +82,15 @@
 
         transition: transform 0.08s;
 
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+
         &-title {
             font-weight: bold;
             white-space: nowrap;
-            overflow: hidden;
+            //overflow: hidden;
             text-overflow: ellipsis;
         }
 
